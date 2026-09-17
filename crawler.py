@@ -6,6 +6,7 @@ import time
 import urllib.robotparser
 from collections import deque
 from dataclasses import dataclass, field
+from typing import Iterator
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -22,6 +23,7 @@ class Page:
     title: str
     text: str
     summary: str
+    depth: int = 0
     links: list[str] = field(default_factory=list)
 
 
@@ -95,12 +97,13 @@ class Crawler:
 
         return title, text, links
 
-    def crawl(self) -> list[Page]:
+    def crawl_iter(self) -> Iterator[tuple[str, str | Page]]:
+        """Yield ("fetching", url) before each request and ("page", Page) after."""
         visited: set[str] = set()
         queue: deque[tuple[str, int]] = deque([(self.start_url, 0)])
-        pages: list[Page] = []
+        count = 0
 
-        while queue and len(pages) < self.max_pages:
+        while queue and count < self.max_pages:
             url, depth = queue.popleft()
             if url in visited or depth > self.max_depth:
                 continue
@@ -110,7 +113,7 @@ class Crawler:
                 print(f"skip (robots.txt): {url}")
                 continue
 
-            print(f"fetching: {url}")
+            yield "fetching", url
             resp = self._fetch(url)
             if resp is None:
                 continue
@@ -118,7 +121,8 @@ class Crawler:
             title, text, links = self._parse(url, resp.text)
             summary = summarize(text, title=title, model=self.model) if text else ""
 
-            pages.append(Page(url=url, title=title, text=text, summary=summary, links=links))
+            count += 1
+            yield "page", Page(url=url, title=title, text=text, summary=summary, depth=depth, links=links)
 
             if depth < self.max_depth:
                 for link in links:
@@ -127,4 +131,11 @@ class Crawler:
 
             time.sleep(self.delay)
 
+    def crawl(self) -> list[Page]:
+        pages: list[Page] = []
+        for kind, item in self.crawl_iter():
+            if kind == "fetching":
+                print(f"fetching: {item}")
+            else:
+                pages.append(item)
         return pages

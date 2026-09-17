@@ -47,6 +47,16 @@ Settings → Project → Python Interpreter → Add Interpreter → Virtualenv, 
 
 With the virtual environment activated:
 
+### Web UI
+
+```bash
+python app.py
+```
+
+Open http://localhost:5000, enter a start page and watch pages arrive with their summaries as the crawl runs.
+
+### CLI
+
 ```bash
 python main.py https://example.com --max-pages 10 --max-depth 2
 ```
