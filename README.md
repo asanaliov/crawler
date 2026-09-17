@@ -11,19 +11,41 @@ A simple website crawler that summarizes each page it visits using a local LLM s
 
 ## Setup
 
-Requires [Ollama](https://ollama.com) running locally with a model pulled, e.g.:
+### 1. Ollama
+
+Install [Ollama](https://ollama.com), make sure it's running, and pull a model:
 
 ```bash
 ollama pull llama3.2
 ```
 
-Install Python dependencies:
+### 2. Python environment
+
+Requires Python 3.10+. Create a virtual environment and install the dependencies.
+
+**Linux / macOS / WSL**
 
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+**Windows (PowerShell / cmd)**
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+**PyCharm**
+
+Settings → Project → Python Interpreter → Add Interpreter → Virtualenv, location `.venv` in the project folder, then install `requirements.txt` when prompted.
+
 ## Usage
+
+With the virtual environment activated:
 
 ```bash
 python main.py https://example.com --max-pages 10 --max-depth 2
@@ -39,3 +61,8 @@ Options:
 - `--output` / `-o` – write results as JSON to a file
 
 If the Ollama server isn't reachable, the crawler still runs and simply skips summaries.
+
+## Troubleshooting
+
+- `ModuleNotFoundError: No module named 'bs4'` – the virtual environment isn't activated or the dependencies aren't installed. Re-run the setup steps above.
+- `warning: local model unavailable` – Ollama isn't running on `http://localhost:11434` or the model hasn't been pulled.
